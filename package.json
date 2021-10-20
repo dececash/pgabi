@@ -1,0 +1,24 @@
+{
+  "name": "dece-pg",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "axios": "^0.22.0",
+    "bs58": "^4.0.1",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jade": "~1.11.0",
+    "js-sha3": "^0.8.0",
+    "log4js": "^6.3.0",
+    "morgan": "~1.9.1",
+    "rlp": "^2.2.7",
+    "sqlite3": "^5.0.2",
+    "web3-eth-abi": "^1.6.0",
+    "web3-utils": "^1.6.0"
+  }
+}
