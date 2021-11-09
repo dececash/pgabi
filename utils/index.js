@@ -26,7 +26,7 @@ function genUserId(pkr) {
 }
 
 function genTTrackId(userId, amount, time) {
-    let hash = keccak256(abi.encodeParameters(["string", "uint", "uint"], [userId, token, amount, time]));
+    let hash = keccak256(abi.encodeParameters(["string", "uint", "uint"], [userId, amount, time]));
     return "T" + time + hash.slice(0, 7)
 }
 

@@ -16,7 +16,7 @@ function post(path, data, callback) {
             'Authorization': 'pk_401c-226ab8-d1a-27f4f'
         }
     }).then(function (response) {
-        console.log(response,"send");
+        console.log(response, "send");
         if (callback) {
             if (response.status == 200) {
                 callback(null, response);
@@ -53,55 +53,60 @@ function get(path, callback) {
 }
 
 function register(miniMcht, callback) {
-    post("user", {
-        "miniMcht": miniMcht
-    }, function (err, response) {
-        // console.log(err,">>>>")
-        // console.log(response,"register");
-        if (err) {
-            callback(err, null)
-        } else {
-            callback(null, response.data);
-        }
-    })
+
+    callback(null, { account: miniMcht.userId });
+
+    // post("user", {
+    //     "miniMcht": miniMcht
+    // }, function (err, response) {
+    //     // console.log(err,">>>>")
+    //     // console.log(response,"register");
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         callback(null, response.data);
+    //     }
+    // })
 }
 
 function getUserInfo(userId, callback) {
-    get("user/" + userId, function (err,response) {
-        // console.log(err,"getUserInfo")
-        // console.log(response,">>>>>");
 
-        if (err) {
-            callback(err, null)
-        } else {
-            console.log(1);
-            callback(null, response.data.miniMcht);
-        }
-    });
+    callback(null, { account: userId });
+
+    // get("user/" + userId, function (err,response) {
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         console.log(1);
+    //         callback(null, response.data.miniMcht);
+    //     }
+    // });
 }
 
 function notiErrorRetry(day, callback) {
-    post("notiErrorRetry", {
-        "vactHook": {
-            "trxDay": day
-        }
-    }, callback)
+    callback(null, {});
+    // post("notiErrorRetry", {
+    //     "vactHook": {
+    //         "trxDay": day
+    //     }
+    // }, callback)
 }
 
 function transfer(trackId, userId, amount, callback) {
-    post("transfer/user", {
-        "miniBankTransfer": {
-            "trackId": trackId,
-            "userId": userId,
-            "amount": amount
-        }
-    }, function (err, response) {
-        if (err) {
-            callback(err, null)
-        } else {
-            callback(null, response.data.miniMcht);
-        }
-    });
+    callback(null, {});
+    // post("transfer/user", {
+    //     "miniBankTransfer": {
+    //         "trackId": trackId,
+    //         "userId": userId,
+    //         "amount": amount
+    //     }
+    // }, function (err, response) {
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         callback(null, response.data.miniMcht);
+    //     }
+    // });
 }
 
 module.exports = {

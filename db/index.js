@@ -18,7 +18,6 @@ function createTables() {
 
         database.run("CREATE TABLE transfers (trackId CHAR(30) PRIMARY KEY NOT NULL," +
             "userId CHAR(66) NOT NULL, " +
-            "account CHAR(30) NOT NULL, " +
             "amount INT NOT NULL, " +
             "status INT NOT NULL, " + //statue 0:未打款，1:已打款，2:已打款失败
             "createTime CHAR(15) NOT NULL);");
@@ -26,7 +25,6 @@ function createTables() {
 }
 
 function saveRecharge(recharge, callback) {
-    console.log(recharge,">>>>")
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
         var stmt = database.prepare("INSERT INTO recharges VALUES (?, ?, ?, ?, ?, ?)"); //root, pkr, 
@@ -43,42 +41,24 @@ function saveRecharge(recharge, callback) {
     });
 }
 
-// function auditingRecharge(trxIds, status) {
-//     database.serialize(function () {
-//         database.run("BEGIN TRANSACTION");
-//         var stmt = database.prepare("UPDATE recharges set status=? where trxId=?;"); //root, pkr, 
-//         trxIds.forEach(trxId => {
-//             stmt.run(status, trxId);
-//         });
-
-//         stmt.finalize(function (err) {
-//             if (err) {
-//                 logger.error(err);
-//                 database.run("ROLLBACK");
-//             }
-//         });
-//         database.run("COMMIT TRANSACTION");
-//     });
-// }
-
-function rechargeList(account,status, pageIndex, pageCount, callback) {
+function rechargeList(account, status, pageIndex, pageCount, callback) {
     let sql = "SELECT * from recharges";
-    if(account && status) {
-        sql += " where account='"+ account+"' AND status="+status;
-    } else if(account) {
-        sql += " where account='"+ account+"'";
-    } else if(status) {
-        sql += " where status="+ status;
+    if (account && status) {
+        sql += " where account='" + account + "' AND status=" + status;
+    } else if (account) {
+        sql += " where account='" + account + "'";
+    } else if (status) {
+        sql += " where status=" + status;
     }
-    if(!pageIndex) {
+    if (!pageIndex) {
         pageIndex = 0;
     }
-    if(!pageCount) {
+    if (!pageCount) {
         pageCount = 10;
     }
     let offset = pageIndex * pageCount;
-    sql += " ORDER BY createTime DESC LIMIT "+offset+","+pageCount+";";
-    console.log(sql)
+    sql += " ORDER BY createTime DESC LIMIT " + offset + "," + pageCount + ";";
+
     database.all(sql, function (err, rows) {
         let list = [];
         console.log(rows)
@@ -95,8 +75,7 @@ function rechargeList(account,status, pageIndex, pageCount, callback) {
     });
 }
 
-function transfer(trackId, userId, amount, statue, callback) {
-    
+function saveTransfer(trackId, userId, amount, statue, callback) {
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
         var stmt = database.prepare("INSERT INTO transfers VALUES (?, ?, ?, ?, ?)"); //root, pkr, 
@@ -105,7 +84,7 @@ function transfer(trackId, userId, amount, statue, callback) {
 
         stmt.finalize(function (err) {
             if (err) {
-                logger.error(err);
+                logger.error("saveTransfer", JSON.stringify(err));
                 database.run("ROLLBACK");
             }
         });
@@ -114,8 +93,15 @@ function transfer(trackId, userId, amount, statue, callback) {
     });
 }
 
-function txStatus(trackId, callback) {
-
+function transferStatus(trackId, callback) {
+    database.get("SELECT status from transfers where trackId='" + trackId+"';", function (err, row) {
+        let status = 1;
+        console.log("transferStatus", err, row);
+        if (row) {
+            status = row.status;
+        }
+        callback(null, status);
+    });
 }
 
 function runSQL(sql, callback) {
@@ -128,6 +114,7 @@ module.exports = {
     createTables,
     rechargeList,
     saveRecharge,
+    saveTransfer,
+    transferStatus,
     runSQL,
-    transfer
 }
