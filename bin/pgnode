@@ -4,87 +4,117 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('dece-pg:server');
-var http = require('http');
+const log4js = require('../logger');
+const logger = log4js.getLogger("info");
+const { encrypt } = require('../encrypt');
 
-/**
- * Get port from environment and store in Express.
- */
+const PASSKEY = "e10adc3949ba59abbe56e057f20f883e";
+const A_KEY = "a787016fbd3836351b88a4e658962c10d99e0d1552cebfaa";
+var CryptoJS = require("crypto-js");
 
-var port = normalizePort(process.env.PORT || '3100');
-app.set('port', port);
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (input) => {
+  input = input.toString().trim();
 
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
+  if (PASSKEY != CryptoJS.MD5(input).toString()) {
+    logger.error("password error!");
+    process.exit(1);
+    return;
   }
 
-  if (port >= 0) {
-    // port number
-    return port;
+  logger.info("start success........");
+  let key = Buffer.alloc(32);
+  key.write(input);
+
+  global.Authorization = encrypt(Buffer.from(A_KEY, 'hex'), key).toString();
+
+  start();
+});
+
+function start() {
+  var app = require('../app');
+  var debug = require('debug')('dece-pg:server');
+  var http = require('http');
+
+  /**
+   * Get port from environment and store in Express.
+   */
+
+  var port = normalizePort(process.env.PORT || '3100');
+  app.set('port', port);
+
+  /**
+   * Create HTTP server.
+   */
+
+  var server = http.createServer(app);
+
+  /**
+   * Listen on provided port, on all network interfaces.
+   */
+
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
+
+  /**
+   * Normalize a port into a number, string, or false.
+   */
+
+  function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+      // named pipe
+      return val;
+    }
+
+    if (port >= 0) {
+      // port number
+      return port;
+    }
+
+    return false;
   }
 
-  return false;
-}
+  /**
+   * Event listener for HTTP server "error" event.
+   */
 
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
+  function onError(error) {
+    if (error.syscall !== 'listen') {
       throw error;
+    }
+
+    var bind = typeof port === 'string'
+      ? 'Pipe ' + port
+      : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+      case 'EACCES':
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
+      case 'EADDRINUSE':
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
   }
-}
 
-/**
- * Event listener for HTTP server "listening" event.
- */
+  /**
+   * Event listener for HTTP server "listening" event.
+   */
 
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+      ? 'pipe ' + addr
+      : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+  }
+
 }

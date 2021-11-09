@@ -13,7 +13,7 @@ function post(path, data, callback) {
     axios.post(rpc, data, {
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'pk_401c-226ab8-d1a-27f4f'
+            'Authorization': global.Authorization
         }
     }).then(function (response) {
         console.log(response, "send");
