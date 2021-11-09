@@ -1,6 +1,7 @@
 const axios = require('axios');
 const log4js = require('../logger');
 const logger = log4js.getLogger("info");
+const utils = require("../utils");
 
 let rpcId = 0;
 
@@ -15,6 +16,7 @@ function post(path, data, callback) {
             'Authorization': 'pk_401c-226ab8-d1a-27f4f'
         }
     }).then(function (response) {
+        console.log(response,"send");
         if (callback) {
             if (response.status == 200) {
                 callback(null, response);
@@ -50,34 +52,29 @@ function get(path, callback) {
     })
 }
 
-function register(name, identity, phone, accnt, callback) {
-    let trackId = "";
-    let userId = "";
+function register(miniMcht, callback) {
     post("user", {
-        "miniMcht": {
-            "trackId": trackId,
-            "userId": userId,
-            "name": name,
-            "taxType": "개인",
-            "identity": identity,
-            "phone": phone,
-            "accnt": accnt
-        }
+        "miniMcht": miniMcht
     }, function (err, response) {
+        // console.log(err,">>>>")
+        // console.log(response,"register");
         if (err) {
             callback(err, null)
         } else {
-            callback(null, response.data.miniMcht);
+            callback(null, response.data);
         }
-
     })
 }
 
 function getUserInfo(userId, callback) {
-    get("user/" + userId, function (response) {
+    get("user/" + userId, function (err,response) {
+        // console.log(err,"getUserInfo")
+        // console.log(response,">>>>>");
+
         if (err) {
             callback(err, null)
         } else {
+            console.log(1);
             callback(null, response.data.miniMcht);
         }
     });

@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const database = new sqlite3.Database('sero.db');
+const database = new sqlite3.Database('pg.db');
 const utils = require('../utils');
 
 const log4js = require('../logger');
@@ -9,71 +9,85 @@ function createTables() {
     database.serialize(function () {
         // database.run("DROP TABLE recharge");
 
-        database.run("CREATE TABLE users (userId CHAR(30) PRIMARY KEY NOT NULL," +
-            "account CHAR(30) NOT NULL, " +
-            "createTime CHAR(10) NOT NULL);");
         database.run("CREATE TABLE recharges (trxId CHAR(30) PRIMARY KEY NOT NULL," +
             "account CHAR(30) NOT NULL, " +
+            "bankCd CHAR(50) NOT NULL, " +
+            "sender CHAR(50) NOT NULL, " +
             "amount INT NOT NULL, " +
-            "status INT NOT NULL, " +
-            "createTime CHAR(10) NOT NULL);");
+            "createTime CHAR(15) NOT NULL);");
 
         database.run("CREATE TABLE transfers (trackId CHAR(30) PRIMARY KEY NOT NULL," +
-            "userId CHAR(66) NOT NULL" +
+            "userId CHAR(66) NOT NULL, " +
             "account CHAR(30) NOT NULL, " +
             "amount INT NOT NULL, " +
-            "status INT NOT NULL, " +
-            "createTime CHAR(10) NOT NULL);");
+            "status INT NOT NULL, " + //statue 0:未打款，1:已打款，2:已打款失败
+            "createTime CHAR(15) NOT NULL);");
     });
 }
 
-function saveRecharge(recharge) {
+function saveRecharge(recharge, callback) {
+    console.log(recharge,">>>>")
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
-        var stmt = database.prepare("INSERT INTO recharges VALUES (?, ?, ?, ?, ?,?, ?)"); //root, pkr, 
-        stmt.run(recharge.trxId, recharge.bankCd, recharge.account, recharge.sender, recharge.amount, 0, recharge.createTime);
-
+        var stmt = database.prepare("INSERT INTO recharges VALUES (?, ?, ?, ?, ?, ?)"); //root, pkr, 
+        stmt.run(recharge.trxId, recharge.account, recharge.bankCd, recharge.sender, recharge.amount, recharge.createTime);
         stmt.finalize(function (err) {
             if (err) {
                 logger.error(err);
                 database.run("ROLLBACK");
+                callback(err);
             }
         });
-
         database.run("COMMIT TRANSACTION");
+        callback(null);
     });
 }
 
-function auditingRecharge(trxIds, status) {
-    database.serialize(function () {
-        database.run("BEGIN TRANSACTION");
-        var stmt = database.prepare("UPDATE recharges set status=? where trxId=?;"); //root, pkr, 
-        trxIds.forEach(trxId => {
-            stmt.run(status, trxId);
-        });
+// function auditingRecharge(trxIds, status) {
+//     database.serialize(function () {
+//         database.run("BEGIN TRANSACTION");
+//         var stmt = database.prepare("UPDATE recharges set status=? where trxId=?;"); //root, pkr, 
+//         trxIds.forEach(trxId => {
+//             stmt.run(status, trxId);
+//         });
 
-        stmt.finalize(function (err) {
-            if (err) {
-                logger.error(err);
-                database.run("ROLLBACK");
-            }
-        });
+//         stmt.finalize(function (err) {
+//             if (err) {
+//                 logger.error(err);
+//                 database.run("ROLLBACK");
+//             }
+//         });
+//         database.run("COMMIT TRANSACTION");
+//     });
+// }
 
-        database.run("COMMIT TRANSACTION");
-    });
-}
-
-function rechargeList(account, OFFSET, callback) {
-    database.all("SELECT * from recharges where account=" + account + " LIMIT 10 OFFSET " + OFFSET, function (err, rows) {
+function rechargeList(account,status, pageIndex, pageCount, callback) {
+    let sql = "SELECT * from recharges";
+    if(account && status) {
+        sql += " where account='"+ account+"' AND status="+status;
+    } else if(account) {
+        sql += " where account='"+ account+"'";
+    } else if(status) {
+        sql += " where status="+ status;
+    }
+    if(!pageIndex) {
+        pageIndex = 0;
+    }
+    if(!pageCount) {
+        pageCount = 10;
+    }
+    let offset = pageIndex * pageCount;
+    sql += " ORDER BY createTime DESC LIMIT "+offset+","+pageCount+";";
+    console.log(sql)
+    database.all(sql, function (err, rows) {
         let list = [];
-
+        console.log(rows)
         rows.forEach(row => {
             list.push({
                 "trxId": row.trxId,
-                "bankCd": row.bankCd,
                 "account": row.account,
-                "sender": row.sender,
                 "amount": row.amount,
+                "status": row.status,
                 "createTime": row.createTime,
             });
         });
@@ -81,12 +95,13 @@ function rechargeList(account, OFFSET, callback) {
     });
 }
 
-function transfer(trackId, userId, amount, callback) {
+function transfer(trackId, userId, amount, statue, callback) {
+    
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
-        var stmt = database.prepare("INSERT INTO transfers VALUES (?, ?, ?, ?, ?, ?)"); //root, pkr, 
-        var createTime = utils.dateFormat("YYYY-mm-dd HH:MM:SS")
-        stmt.run(trackId, userId, amount, amount, "DONE", createTime);
+        var stmt = database.prepare("INSERT INTO transfers VALUES (?, ?, ?, ?, ?)"); //root, pkr, 
+        var createTime = utils.dateFormat("YYYY-mm-dd HH:MM:SS", new Date());
+        stmt.run(trackId, userId, amount, statue, createTime);
 
         stmt.finalize(function (err) {
             if (err) {
@@ -97,6 +112,10 @@ function transfer(trackId, userId, amount, callback) {
 
         database.run("COMMIT TRANSACTION");
     });
+}
+
+function txStatus(trackId, callback) {
+
 }
 
 function runSQL(sql, callback) {
@@ -107,5 +126,8 @@ function runSQL(sql, callback) {
 
 module.exports = {
     createTables,
-
+    rechargeList,
+    saveRecharge,
+    runSQL,
+    transfer
 }

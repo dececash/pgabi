@@ -22,18 +22,22 @@ function dateFormat(fmt, date) {
 }
 
 function genUserId(pkr) {
-    // let hash = keccak256(pkr);
-    // return "U" + Math.floor(new Date().getTime()/1000) + hash.slice(0, 7)
-    return "U" + pkr.slice(0, 20);
+    return "U" + pkr.slice(0, 20) + pkr.slice(64, 73);
 }
 
-function genTrackId(userId, token, amount, time) {
-    let hash = keccak256(abi.encodeParameters(["string", "string", "uint", "uint"], [userId, token, amount, time]));
+function genTTrackId(userId, amount, time) {
+    let hash = keccak256(abi.encodeParameters(["string", "uint", "uint"], [userId, token, amount, time]));
+    return "T" + time + hash.slice(0, 7)
+}
+
+function genRTrackId(userId, time) {
+    let hash = keccak256(userId);
     return "T" + time + hash.slice(0, 7)
 }
 
 module.exports = {
     dateFormat,
-    genTrackId,
+    genTTrackId,
+    genRTrackId,
     genUserId
 }
