@@ -7,8 +7,8 @@ var router = express.Router();
 const log4js = require('../logger');
 const logger = log4js.getLogger("info");
 
-
 router.post('/notify', function (req, res, next) {
+  logger.info("recharge req", JSON.stringify(req.body));
   let tx = {
     "trxId": req.body.trxId,
     "bankCd": req.body.bankCd,
@@ -17,7 +17,7 @@ router.post('/notify', function (req, res, next) {
     "amount": req.body.amount,
     "createTime": req.body.trxDay + " " + req.body.trxTime
   }
-  logger.info("recharge", JSON.stringify(req.body));
+  
   db.saveRecharge(tx, function (err) {
     res.send({
       code: "200",
@@ -140,7 +140,11 @@ router.get('/transferStatus', function (req, res, next) {
 router.post('/retry', function (req, res, next) {
   logger.info("retry", req.body.day);
 
-  pgRpc.notiErrorRetry(req.body.day, function (err, ret) {
+  pgRpc.notiErrorRetry({
+    "vactHook": {
+      "trxDay": req.body.day
+    }
+  }, function (err, ret) {
     res.send({
       code: "200",
       message: "OK"

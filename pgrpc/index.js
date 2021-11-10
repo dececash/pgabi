@@ -1,9 +1,6 @@
 const axios = require('axios');
 const log4js = require('../logger');
 const logger = log4js.getLogger("info");
-const utils = require("../utils");
-
-let rpcId = 0;
 
 function post(path, data, callback) {
     let rpc = "https://wapi.pay-sharp.com/wapi/mini/" + path;
@@ -16,7 +13,6 @@ function post(path, data, callback) {
             'Authorization': global.Authorization
         }
     }).then(function (response) {
-        console.log(response, "send");
         if (callback) {
             if (response.status == 200) {
                 callback(null, response);
@@ -25,6 +21,7 @@ function post(path, data, callback) {
             }
         }
     }).catch(function (error) {
+        logger.error("RPC", error);
         callback(error, null);
     })
 }
@@ -34,7 +31,7 @@ function get(path, callback) {
     axios.get(rpc, {
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'pk_401c-226ab8-d1a-27f4f'
+            'Authorization': global.Authorization
         }
     }).then(function (response) {
         if (callback) {
@@ -46,6 +43,7 @@ function get(path, callback) {
 
         }
     }).catch(function (error) {
+        logger.error("RPC", error);
         if (callback) {
             callback(error, null);
         }
