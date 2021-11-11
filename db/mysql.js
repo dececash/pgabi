@@ -85,15 +85,18 @@ function saveTransfer(transferItem, callback) {
 
 function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
-        let sql = "UPDATE transfers SET `status` = " + status + " where trackId = '" + trackId + "';";
-        connection.query(sql, function (error, results) {
+        let sql = "UPDATE ?? SET `status` = ? where trackId = '?' AND status=0;";
+        connection.query(sql, [transfers, status, trackId], function (error, results) {
             logger.info("updateTransferStatus", error, results);
-            if (err) {
-                logger.error("UPDATE", err);
-                callback(err, null);
-            } else {
+            if (results && results.affectedRows == 1) {
                 logger.info("UPDATE", sql);
                 callback(null, {});
+            } else {
+                if (!err) {
+                    err = results.message
+                }
+                logger.error("UPDATE", err);
+                callback(err, null);
             }
         });
     });
@@ -103,10 +106,12 @@ function transferStatus(trackId, callback) {
     pool.getConnection(function (err, connection) {
         connection.query("SELECT status from transfers where trackId='" + trackId + "';", function (error, results, fields) {
             let status = 0;
-            if (!error && results.length != 0) {
-                status = results[0].status;
-            };
-            callback(null, status);
+            if (error || results.length == 0) {
+                logger.error(error, results);
+                callback("no row", null);
+            } else {
+                callback(null, results[0].status);
+            }
         });
     });
 }

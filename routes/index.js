@@ -122,34 +122,42 @@ router.post("/transfer", function (req, res, next) {
   logger.info("transfer", trackId, userId, req.body.amount);
 
   db.transferStatus(trackId, function (err, status) {
-    if (status == 1) {
+    if (err) {
       res.send({
-        code: "200",
-        message: "OK",
+        code: "500",
+        message: err,
       });
       return;
     } else {
-      db.updateTransferStatus(trackId, 1, function (err, ret) {
-        if (err) {
-          logger.error("transfer", JSON.stringify(err));
-          res.send({
-            code: "500",
-            message: err,
-          });
-        } else {
-          pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
-            if (err) {
-              logger.error("transfer", JSON.stringify(err));
-            } else {
-              logger.info("transfer ret", JSON.stringify(ret));
-            }
+      if (status == 1) {
+        res.send({
+          code: "200",
+          message: "OK",
+        });
+        return;
+      } else {
+        db.updateTransferStatus(trackId, 1, function (err, ret) {
+          if (err) {
+            logger.error("transfer", JSON.stringify(err));
             res.send({
-              code: "200",
-              message: "OK",
+              code: "500",
+              message: err,
             });
-          });
-        }
-      });
+          } else {
+            pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
+              if (err) {
+                logger.error("transfer", JSON.stringify(err));
+              } else {
+                logger.info("transfer ret", JSON.stringify(ret));
+              }
+              res.send({
+                code: "200",
+                message: "OK",
+              });
+            });
+          }
+        });
+      }
     }
   });
 });
