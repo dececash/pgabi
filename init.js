@@ -2,7 +2,7 @@ const pgRpc = require('./pgrpc');
 
 const rpl = require('rlp');
 const abi = require('web3-eth-abi');
-const db = require('./db/sqlite');
+const db = require('./db/mysql');
 const { encrypt } = require('./encrypt');
 
 const { toHex, soliditySha3, soliditySha3Raw, encodePacked, keccak256 } = require('web3-utils');

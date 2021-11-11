@@ -70,7 +70,6 @@ router.post("/register", function (req, res, next) {
 router.get("/getUserInfo", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
   pgRpc.getUserInfo(userId, function (err, ret) {
-    console.log("getUserInfo", err, ret);
     if (err) {
       res.send({
         code: "500",
@@ -121,43 +120,49 @@ router.post("/transfer", function (req, res, next) {
       });
       return;
     } else {
-      pgRpc.transfer(trackId, userId, amount, function (err, ret) {
+      db.updateTransferStatus(trackId, 1, function (err, ret) {
         if (err) {
-          logger.error("transfer error", JSON.stringify(err));
+          logger.error("transfer", JSON.stringify(err));
+          res.send({
+            code: "500",
+            message: err,
+          });
         } else {
-          logger.info("transfer ret", JSON.stringify(ret));
+          pgRpc.transfer(trackId, userId, amount, function (err, ret) {
+            if (err) {
+              logger.error("transfer", JSON.stringify(err));
+            } else {
+              logger.info("transfer ret", JSON.stringify(ret));
+            }
+            res.send({
+              code: "200",
+              message: "OK",
+            });
+          });
         }
-
-        db.updateTransferStatus(trackId, 1);
-
-        res.send({
-          code: "200",
-          message: "OK",
-        });
       });
     }
   });
 });
 
 router.get("/transferStatus", function (req, res, next) {
-  let userId = utils.genUserId(req.body.pkr);
-  let trackId = utils.genTTrackId(userId, req.body.itemId, req.body.amount, req.body.time);
+  let userId = utils.genUserId(req.query.pkr);
+  let trackId = utils.genTTrackId(userId, req.query.itemId, req.query.amount, req.query.time);
   db.transferStatus(trackId, function (err, status) {
-    console.log("transferStatus", status);
     res.send({
       code: "200",
       message: "OK",
-      data: {status: status},
+      data: { status: status },
     });
   });
 });
 
 router.get("/getRechargeList", function (req, res, next) {
   db.rechargeList(
-    req.body.account,
-    req.body.status,
-    req.body.pageIndex,
-    req.body.pageCount,
+    req.query.account,
+    req.query.status,
+    req.query.pageIndex,
+    req.query.pageCount,
     function (err, list) {
       if (err) {
         res.send({
@@ -179,7 +184,6 @@ router.get("/retry", function (req, res, next) {
   logger.info("retry", req.query.day);
 
   pgRpc.notiErrorRetry(req.query.day, function (err, ret) {
-    console.log(err, ret);
     res.send({
       code: "200",
       message: "OK",

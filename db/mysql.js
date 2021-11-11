@@ -28,7 +28,7 @@ function createTables() {
                 logger.error("create table error", err);
             });
 
-            let creat_transfers = `CREATE TABLE recharges (
+            let creat_transfers = `CREATE TABLE transfers (
                                         trackId varchar(30) PRIMARY KEY NOT NULL,
                                         userId varchar(66) NOT NULL,
                                         amount varchar(100) NOT NULL,
@@ -83,7 +83,7 @@ function saveTransfer(transferItem, callback) {
     insert("transfers", transferItem, callback);
 }
 
-function updateTransferStatus(trackId, status) {
+function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
         let sql = "UPDATE transfers SET `status` = " + status + "where trackId = '" + trackId + "';";
         connection.query(sql, [table], function (error, results) {
@@ -146,10 +146,12 @@ function rechargeList(account, status, pageIndex, pageCount, callback) {
 }
 
 
+
 module.exports = {
     createTables,
     rechargeList,
     saveRecharge,
     saveTransfer,
+    updateTransferStatus,
     transferStatus,
 }

@@ -1,6 +1,6 @@
 
-// const db = require('./mysql');
-const db = require('./sqlite');
+const db = require('./mysql');
+// const db = require('./sqlite');
 
 
 function createTables() {
@@ -15,8 +15,8 @@ function saveTransfer(transferItem, callback) {
     db.saveTransfer(transferItem, callback);
 }
 
-function updateTransferStatus(trackId, status) {
-    db.updateTransferStatus(trackId, status);
+function updateTransferStatus(trackId, status, callback) {
+    db.updateTransferStatus(trackId, status, callback);
 }
 
 function transferStatus(trackId, callback) {

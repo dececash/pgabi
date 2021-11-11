@@ -34,10 +34,12 @@ function saveRecharge(recharge, callback) {
                 logger.error("saveRecharge", err);
                 database.run("ROLLBACK");
                 callback(err);
+            } else {
+                callback(null);
             }
         });
         database.run("COMMIT TRANSACTION");
-        callback(null);
+
     });
 }
 
@@ -58,7 +60,7 @@ function saveTransfer(txItem, callback) {
     });
 }
 
-function updateTransferStatus(trackId, status) {
+function updateTransferStatus(trackId, status, callback) {
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
         database
@@ -68,9 +70,11 @@ function updateTransferStatus(trackId, status) {
             if (err) {
                 logger.error("updateTransferStatus", JSON.stringify(err));
                 database.run("ROLLBACK");
+                callback(err)
+            } else {
+                callback(null);
             }
         });
-
         database.run("COMMIT TRANSACTION");
     });
 }
@@ -78,7 +82,6 @@ function updateTransferStatus(trackId, status) {
 function transferStatus(trackId, callback) {
     database.get("SELECT status from transfers where trackId='" + trackId + "';", function (err, row) {
         let status = 1;
-        console.log("transferStatus", err, row);
         if (row) {
             status = row.status;
         }
@@ -106,14 +109,17 @@ function rechargeList(account, status, pageIndex, pageCount, callback) {
 
     database.all(sql, function (err, rows) {
         let list = [];
-        console.log(rows)
+        if(err || !rows || rows.length == 0) {
+            callback(err, list);
+            return;
+        }
         rows.forEach(row => {
             list.push({
                 "trxId": row.trxId,
                 "account": row.account,
                 "amount": row.amount,
                 "status": row.status,
-                "createTime": row.createTime,
+                "createTime": new Date(row.createTime),
             });
         });
         callback(err, list);
