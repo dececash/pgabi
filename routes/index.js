@@ -97,12 +97,21 @@ router.post("/saveTransfer", function (req, res, next) {
   };
 
   logger.info("saveTransfer", transferItem);
-  db.saveTransfer(transferItem);
-
-  res.send({
-    code: "200",
-    message: "OK",
+  db.saveTransfer(transferItem, function (err) {
+    if (err) {
+      res.send({
+        code: "500",
+        message: error,
+      });
+    } else {
+      res.send({
+        code: "200",
+        message: "OK",
+      });
+    }
   });
+
+
 
 });
 
