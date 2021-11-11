@@ -10,4 +10,4 @@ read -s key
 echo $key > 0
 
 
-nohup node bin/pgnode < 0 >> error.log 2>&1 & echo $! > pid & rm -rf 0
+nohup node bin/pgnode < 0 >> logs/error.log 2>&1 & echo $! > pid & rm -rf 0

@@ -13,9 +13,10 @@ function post(path, data, callback) {
             'Authorization': global.Authorization
         }
     }).then(function (response) {
+        logger.info("post", path, data, response.data);
         if (callback) {
             if (response.status == 200) {
-                callback(null, response);
+                callback(null, response.data);
             } else {
                 callback(new Error(response.statusText), null);
             }
@@ -34,9 +35,10 @@ function get(path, callback) {
             'Authorization': global.Authorization
         }
     }).then(function (response) {
+        logger.info("get", path, response.data);
         if (callback) {
             if (response.status == 200) {
-                callback(null, response);
+                callback(null, response.data);
             } else {
                 callback(new Error(response.statusText), null);
             }
@@ -52,42 +54,42 @@ function get(path, callback) {
 
 function register(miniMcht, callback) {
 
-    callback(null, { account: miniMcht.userId });
-
-    // post("user", {
-    //     "miniMcht": miniMcht
-    // }, function (err, response) {
-    //     // console.log(err,">>>>")
-    //     // console.log(response,"register");
-    //     if (err) {
-    //         callback(err, null)
-    //     } else {
-    //         callback(null, response.data);
-    //     }
-    // })
+    // callback(null, { account: miniMcht.userId });
+    post("user", {
+        "miniMcht": miniMcht
+    }, function (err, data) {
+        if (err) {
+            callback(err, null)
+        } else {
+            callback(null, data);
+        }
+    })
 }
 
 function getUserInfo(userId, callback) {
-
     callback(null, { account: userId });
-
-    // get("user/" + userId, function (err,response) {
+    // userId = "decetest00002";
+    // get("user/" + userId, function (err, data) {
     //     if (err) {
     //         callback(err, null)
     //     } else {
-    //         console.log(1);
-    //         callback(null, response.data.miniMcht);
+    //         if (data.miniMcht) {
+    //             callback(null, data.miniMcht);
+    //         } else {
+    //             callback(null, data.result);
+    //         }
     //     }
     // });
 }
 
 function notiErrorRetry(day, callback) {
-    callback(null, {});
-    // post("notiErrorRetry", {
-    //     "vactHook": {
-    //         "trxDay": day
-    //     }
-    // }, callback)
+    post("notiErrorRetry", {
+        "vactHook": {
+            "trxDay": day
+        }
+    }, function (data) {
+        callback(data.result);
+    })
 }
 
 function transfer(trackId, userId, amount, callback) {
