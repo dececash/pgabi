@@ -101,7 +101,7 @@ router.post("/saveTransfer", function (req, res, next) {
     if (err) {
       res.send({
         code: "500",
-        message: error,
+        message: err,
       });
     } else {
       res.send({

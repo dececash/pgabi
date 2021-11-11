@@ -33,7 +33,7 @@ function createTables() {
                                         userId varchar(66) NOT NULL,
                                         amount varchar(100) NOT NULL,
                                         status INT NOT NULL,
-                                        createTime CHAR(15) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
+                                        createTime TIMESTAMP NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
 
             connection.query(creat_transfers, function (err) {
                 logger.error("create table error", err);
@@ -85,8 +85,8 @@ function saveTransfer(transferItem, callback) {
 
 function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
-        let sql = "UPDATE transfers SET `status` = " + status + "where trackId = '" + trackId + "';";
-        connection.query(sql, [table], function (error, results) {
+        let sql = "UPDATE transfers SET `status` = " + status + " where trackId = '" + trackId + "';";
+        connection.query(sql, [], function (error, results) {
             if (err) {
                 logger.error("UPDATE", table, err);
                 callback(err, null);
@@ -102,7 +102,7 @@ function transferStatus(trackId, callback) {
     pool.getConnection(function (err, connection) {
         connection.query("SELECT status from transfers where trackId='" + trackId + "';", function (error, results, fields) {
             let status = 0;
-            if (!error) {
+            if (!error && results.length != 0) {
                 status = results[0].status;
             };
             callback(null, status);
