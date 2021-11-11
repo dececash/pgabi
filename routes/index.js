@@ -137,7 +137,7 @@ router.post("/transfer", function (req, res, next) {
             message: err,
           });
         } else {
-          pgRpc.transfer(trackId, userId, amount, function (err, ret) {
+          pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
             if (err) {
               logger.error("transfer", JSON.stringify(err));
             } else {

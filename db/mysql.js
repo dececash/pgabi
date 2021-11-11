@@ -86,12 +86,13 @@ function saveTransfer(transferItem, callback) {
 function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
         let sql = "UPDATE transfers SET `status` = " + status + " where trackId = '" + trackId + "';";
-        connection.query(sql, [], function (error, results) {
+        connection.query(sql, function (error, results) {
+            logger.info("updateTransferStatus", error, results);
             if (err) {
-                logger.error("UPDATE", table, err);
+                logger.error("UPDATE", err);
                 callback(err, null);
             } else {
-                logger.info("UPDATE", table, sql);
+                logger.info("UPDATE", sql);
                 callback(null, {});
             }
         });
