@@ -8,6 +8,7 @@ var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '123456@',
+    // password: '12345678',
     database: 'pgnode',
     port: 3306
 });
@@ -48,10 +49,15 @@ function insert(table, row, callback) {
         if (err) {
             logger.error("mysql", err);
         } else {
-            connection.query('INSERT INTO ?? SET ?', [table, row], function (err) {
+            connection.query('INSERT INTO ?? SET ?', [table, row], function (err,ret) {
+                connection.release();
                 if (err) {
-                    logger.error("INSERT", table, err);
-                    callback(err, null);
+                    logger.error("INSERT", table, err.code);
+                    if(err.code == "ER_DUP_ENTRY") {
+                        callback(null, {});
+                    } else {
+                        callback(err, null);
+                    }
                 } else {
                     logger.info("INSERT", table, row);
                     callback(null, {});
@@ -64,6 +70,7 @@ function insert(table, row, callback) {
 function update(talbe, key, value) {
     pool.getConnection(function (err, connection) {
         connection.query('UPDATE ?? SET `col1` = 2', [table], function (error, results) {
+            connection.release();
             if (err) {
                 logger.error("UPDATE", table, err);
                 callback(err, null);
@@ -87,9 +94,9 @@ function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
         let sql = "UPDATE ?? SET `status` = ? where trackId = '?' AND status=0;";
         connection.query(sql, [transfers, status, trackId], function (error, results) {
-            logger.info("updateTransferStatus", error, results);
+            connection.release();
             if (results && results.affectedRows == 1) {
-                logger.info("UPDATE", sql);
+                logger.info(sql);
                 callback(null, {});
             } else {
                 if (!err) {
@@ -105,6 +112,7 @@ function updateTransferStatus(trackId, status, callback) {
 function transferStatus(trackId, callback) {
     pool.getConnection(function (err, connection) {
         connection.query("SELECT status from transfers where trackId='" + trackId + "';", function (error, results, fields) {
+            connection.release();
             let status = 0;
             if (error || results.length == 0) {
                 logger.error(error, results);
@@ -116,14 +124,10 @@ function transferStatus(trackId, callback) {
     });
 }
 
-function rechargeList(account, status, pageIndex, pageCount, callback) {
+function rechargeList(account, pageIndex, pageCount, callback) {
     let sql = "SELECT * from recharges";
-    if (account && status) {
-        sql += " where account='" + account + "' AND status=" + status;
-    } else if (account) {
+    if (account) {
         sql += " where account='" + account + "'";
-    } else if (status) {
-        sql += " where status=" + status;
     }
     if (!pageIndex) {
         pageIndex = 0;
@@ -136,17 +140,22 @@ function rechargeList(account, status, pageIndex, pageCount, callback) {
 
     pool.getConnection(function (err, connection) {
         connection.query(sql, function (error, results, fields) {
+            connection.release();
             let list = [];
-            results.forEach(row => {
-                list.push({
-                    "trxId": row.trxId,
-                    "account": row.account,
-                    "amount": row.amount,
-                    "status": row.status,
-                    "createTime": row.createTime,
+            if(error || results && results.length == 0) {
+                callback(null, list);
+            } else {
+                results.forEach(row => {
+                    list.push({
+                        "trxId": row.trxId,
+                        "account": row.account,
+                        "amount": row.amount,
+                        "status": row.status,
+                        "createTime": row.createTime,
+                    });
                 });
-            });
-            callback(err, list);
+                callback(err, list);
+            }
         });
     });
 }

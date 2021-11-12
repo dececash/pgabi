@@ -20,10 +20,17 @@ router.post("/notify", function (req, res, next) {
   };
 
   db.saveRecharge(recharegItem, function (err) {
-    res.send({
-      code: "200",
-      message: "ok",
-    });
+    if(err) {
+      res.send({
+        code: "500",
+        message: err,
+      });
+    } else {
+      res.send({
+        code: "200",
+        message: "ok",
+      });
+    }
   });
 });
 
@@ -88,11 +95,15 @@ router.get("/getUserInfo", function (req, res, next) {
 router.post("/saveTransfer", function (req, res, next) {
   let userId = utils.genUserId(req.body.pkr);
   let trackId = utils.genTTrackId(userId, req.body.itemId, req.body.amount, req.body.time);
+  let status = 0;
+  if(req.body.status) {
+    status = req.body.status;
+  }
   let transferItem = {
     trackId: trackId,
     userId: userId,
     amount: req.body.amount,
-    status: req.body.status,
+    status: status,
     createTime: new Date(req.body.time * 1000),
   };
 
@@ -165,7 +176,11 @@ router.post("/transfer", function (req, res, next) {
 router.get("/transferStatus", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
   let trackId = utils.genTTrackId(userId, req.query.itemId, req.query.amount, req.query.time);
+  logger.info("trackId", "userId", req.query);
   db.transferStatus(trackId, function (err, status) {
+    if(!status) {
+      status = 1;
+    }
     res.send({
       code: "200",
       message: "OK",
@@ -177,7 +192,6 @@ router.get("/transferStatus", function (req, res, next) {
 router.get("/getRechargeList", function (req, res, next) {
   db.rechargeList(
     req.query.account,
-    req.query.status,
     req.query.pageIndex,
     req.query.pageCount,
     function (err, list) {

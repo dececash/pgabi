@@ -13,15 +13,7 @@ const utils = require('./utils');
 // })
 
 
-// db.createTables();
-// let table = "transfers";
-let table = "recharges";
-db.runSQL("SELECT * from "+table, function(err, rows) {
-    rows.forEach(element => {
-        console.log(element);
-    });
-})
-
+db.createTables();
 // let datas = keccak256(abi.encodeParameters(["string", "string", "uint"], ["1", "SERO", "100"]));
 // console.log(datas);
 // console.log(keccak256(encodePacked("1","SERO","100")));

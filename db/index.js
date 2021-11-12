@@ -23,8 +23,8 @@ function transferStatus(trackId, callback) {
     db.transferStatus(trackId, callback);
 }
 
-function rechargeList(account, status, pageIndex, pageCount, callback) {
-    db.rechargeList(account, status, pageIndex, pageCount, callback);
+function rechargeList(account, pageIndex, pageCount, callback) {
+    db.rechargeList(account, pageIndex, pageCount, callback);
 }
 
 
