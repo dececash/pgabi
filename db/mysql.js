@@ -7,8 +7,8 @@ const logger = log4js.getLogger("info");
 var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: '123456@',
-    // password: '12345678',
+    // password: '123456@',
+    password: '12345678',
     database: 'pgnode',
     port: 3306
 });
@@ -92,18 +92,17 @@ function saveTransfer(transferItem, callback) {
 
 function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
-        let sql = "UPDATE ?? SET `status` = ? where trackId = '?' AND status=0;";
-        connection.query(sql, [transfers, status, trackId], function (error, results) {
+        let sql = "UPDATE ?? SET `status` = ? where trackId=? AND status=0;";
+        connection.query(sql, ["transfers", status, trackId], function (error, results) {
             connection.release();
             if (results && results.affectedRows == 1) {
-                logger.info(sql);
                 callback(null, {});
             } else {
-                if (!err) {
-                    err = results.message
+                if (!error) {
+                    error = results.message
                 }
-                logger.error("UPDATE", err);
-                callback(err, null);
+                logger.error("UPDATE", error);
+                callback(error, null);
             }
         });
     });
@@ -111,11 +110,11 @@ function updateTransferStatus(trackId, status, callback) {
 
 function transferStatus(trackId, callback) {
     pool.getConnection(function (err, connection) {
-        connection.query("SELECT status from transfers where trackId='" + trackId + "';", function (error, results, fields) {
+        connection.query("SELECT status from transfers where `trackId`='" + trackId + "';", function (error, results, fields) {
             connection.release();
-            let status = 0;
+            logger.info("transferStatus", error, results);
             if (error || results.length == 0) {
-                logger.error(error, results);
+                logger.error("transferStatus", trackId, error, results);
                 callback("no row", null);
             } else {
                 callback(null, results[0].status);
@@ -159,7 +158,6 @@ function rechargeList(account, pageIndex, pageCount, callback) {
         });
     });
 }
-
 
 
 module.exports = {

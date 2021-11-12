@@ -99,6 +99,7 @@ router.post("/saveTransfer", function (req, res, next) {
   if(req.body.status) {
     status = req.body.status;
   }
+  logger.info("saveTransfer", req.body);
   let transferItem = {
     trackId: trackId,
     userId: userId,
@@ -134,7 +135,7 @@ router.post("/transfer", function (req, res, next) {
 
   db.transferStatus(trackId, function (err, status) {
     if (err) {
-      res.send({
+      res.status(500).send({
         code: "500",
         message: err,
       });
@@ -150,7 +151,7 @@ router.post("/transfer", function (req, res, next) {
         db.updateTransferStatus(trackId, 1, function (err, ret) {
           if (err) {
             logger.error("transfer", JSON.stringify(err));
-            res.send({
+            res.status(500).send({
               code: "500",
               message: err,
             });
@@ -161,7 +162,7 @@ router.post("/transfer", function (req, res, next) {
               } else {
                 logger.info("transfer ret", JSON.stringify(ret));
               }
-              res.send({
+              res.status(200).send({
                 code: "200",
                 message: "OK",
               });
@@ -176,9 +177,9 @@ router.post("/transfer", function (req, res, next) {
 router.get("/transferStatus", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
   let trackId = utils.genTTrackId(userId, req.query.itemId, req.query.amount, req.query.time);
-  logger.info("trackId", "userId", req.query);
+  logger.info(trackId, userId, req.query);
   db.transferStatus(trackId, function (err, status) {
-    if(!status) {
+    if(status == null) {
       status = 1;
     }
     res.send({
