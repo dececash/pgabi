@@ -24,6 +24,10 @@ function createTables() {
     });
 }
 
+function saveUser(user, callback) {
+
+}
+
 function saveRecharge(recharge, callback) {
     database.serialize(function () {
         database.run("BEGIN TRANSACTION");
@@ -109,7 +113,7 @@ function rechargeList(account, status, pageIndex, pageCount, callback) {
 
     database.all(sql, function (err, rows) {
         let list = [];
-        if(err || !rows || rows.length == 0) {
+        if (err || !rows || rows.length == 0) {
             callback(err, list);
             return;
         }

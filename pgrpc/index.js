@@ -54,16 +54,16 @@ function get(path, callback) {
 
 function register(miniMcht, callback) {
 
-    // callback(null, { account: miniMcht.userId });
-    post("user", {
-        "miniMcht": miniMcht
-    }, function (err, data) {
-        if (err) {
-            callback(err, null)
-        } else {
-            callback(null, data);
-        }
-    })
+    callback(null, { account: miniMcht.userId });
+    // post("user", {
+    //     "miniMcht": miniMcht
+    // }, function (err, data) {
+    //     if (err) {
+    //         callback(err, null)
+    //     } else {
+    //         callback(null, data);
+    //     }
+    // })
 }
 
 function getUserInfo(userId, callback) {

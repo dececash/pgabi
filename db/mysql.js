@@ -18,25 +18,35 @@ function createTables() {
         if (err) {
             logger.error("mysql", err);
         } else {
-            let creat_recharges = `CREATE TABLE recharges (
+            let create_recharges = `CREATE TABLE recharges (
                                         trxId varchar(30) PRIMARY KEY NOT NULL,
                                         account varchar(30) NOT NULL,
                                         bankCd varchar(50) NOT NULL,
                                         sender varchar(50) NOT NULL,
                                         amount varchar(100) NOT NULL,
                                         createTime TIMESTAMP NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
-            connection.query(creat_recharges, function (err) {
+            connection.query(create_recharges, function (err) {
                 logger.error("create table error", err);
             });
 
-            let creat_transfers = `CREATE TABLE transfers (
+            let create_transfers = `CREATE TABLE transfers (
                                         trackId varchar(30) PRIMARY KEY NOT NULL,
                                         userId varchar(66) NOT NULL,
                                         amount varchar(100) NOT NULL,
                                         status INT NOT NULL,
                                         createTime TIMESTAMP NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
 
-            connection.query(creat_transfers, function (err) {
+            connection.query(create_transfers, function (err) {
+                logger.error("create table error", err);
+            });
+
+            let create_users = `CREATE TABLE users (
+                userId varchar(66) PRIMARY KEY NOT NULL,
+                account varchar(66) NOT NULL,
+                info TEXT NOT NULL,
+                createTime TIMESTAMP NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
+
+            connection.query(create_users, function (err) {
                 logger.error("create table error", err);
             });
         }
@@ -44,16 +54,18 @@ function createTables() {
 }
 
 
+
+
 function insert(table, row, callback) {
     pool.getConnection(function (err, connection) {
         if (err) {
             logger.error("mysql", err);
         } else {
-            connection.query('INSERT INTO ?? SET ?', [table, row], function (err,ret) {
+            connection.query('INSERT INTO ?? SET ?', [table, row], function (err, ret) {
                 connection.release();
                 if (err) {
                     logger.error("INSERT", table, err.code);
-                    if(err.code == "ER_DUP_ENTRY") {
+                    if (err.code == "ER_DUP_ENTRY") {
                         callback(null, {});
                     } else {
                         callback(err, null);
@@ -80,6 +92,29 @@ function update(talbe, key, value) {
             }
         });
     });
+}
+
+function getUserInfo(useId, callback) {
+    pool.getConnection(function (err, connection) {
+        connection.query("SELECT * from users where `userId`='" + useId + "';", function (error, results, fields) {
+            connection.release();
+            logger.info("getUserInfo", error, results);
+            if (error || results.length == 0) {
+                logger.error("getUserInfo", "no found");
+                callback("no row", null);
+            } else {
+                callback(null, {
+                    useId: results[0].userId,
+                    account: results[0].account,
+                    info: results[0].info
+                });
+            }
+        });
+    });
+}
+
+function saveUser(user, callback) {
+    insert("users", user, callback);
 }
 
 function saveRecharge(rechargeItem, callback) {
@@ -141,7 +176,7 @@ function rechargeList(account, pageIndex, pageCount, callback) {
         connection.query(sql, function (error, results, fields) {
             connection.release();
             let list = [];
-            if(error || results && results.length == 0) {
+            if (error || results && results.length == 0) {
                 callback(null, list);
             } else {
                 results.forEach(row => {
@@ -163,8 +198,10 @@ function rechargeList(account, pageIndex, pageCount, callback) {
 module.exports = {
     createTables,
     rechargeList,
+    saveUser,
     saveRecharge,
     saveTransfer,
     updateTransferStatus,
     transferStatus,
+    getUserInfo
 }

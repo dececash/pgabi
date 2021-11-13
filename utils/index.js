@@ -27,12 +27,12 @@ function genUserId(pkr) {
 
 function genTTrackId(userId, itemId, amount, time) {
     let hash = keccak256(abi.encodeParameters(["string", "uint", "uint", "uint"], [userId, itemId, amount, time]));
-    return "T" + time + hash.slice(2, 7)
+    return "T" + time + hash.slice(2, 9)
 }
 
 function genRTrackId(userId, time) {
     let hash = keccak256(userId);
-    return "T" + time + hash.slice(0, 7)
+    return "T" + time + hash.slice(2, 9)
 }
 
 module.exports = {

@@ -7,6 +7,10 @@ function createTables() {
     db.createTables();
 }
 
+function saveUser(user, callback) {
+    db.saveUser(user, callback);
+}
+
 function saveRecharge(rechargeItem, callback) {
     db.saveRecharge(rechargeItem, callback);
 }
@@ -30,9 +34,11 @@ function rechargeList(account, pageIndex, pageCount, callback) {
 
 module.exports = {
     createTables,
+    rechargeList,
+    saveUser,
     saveRecharge,
     saveTransfer,
     updateTransferStatus,
     transferStatus,
-    rechargeList,
+    getUserInfo
 }
