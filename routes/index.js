@@ -91,7 +91,7 @@ router.get("/getUserInfo", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
   db.getUserInfo(userId, function (err, ret) {
     if (err) {
-      res.send({
+      res.status(500).send({
         code: "500",
         message: err,
       });

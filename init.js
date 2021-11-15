@@ -22,4 +22,4 @@ const utils = require('./utils');
 // console.log(soliditySha3("1","SERO","100"));
 // console.log(utils.genTrackId("test001", "SERO", 100, parseInt(new Date().getTime() / 1000)));
 
-console.log(date.parse("20211008185116", "YYYYMMDDHHmmss"));
+// console.log(date.parse("20211008185116", "YYYYMMDDHHmmss"));

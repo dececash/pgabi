@@ -31,6 +31,10 @@ function rechargeList(account, pageIndex, pageCount, callback) {
     db.rechargeList(account, pageIndex, pageCount, callback);
 }
 
+function getUserInfo(useId, callback) {
+    db.getUserInfo(useId, callback);
+}
+
 
 module.exports = {
     createTables,
