@@ -8,7 +8,6 @@ var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '123456@',
-    // password: '12345678',
     database: 'pgnode',
     port: 3306
 });
@@ -18,7 +17,7 @@ function createTables() {
         if (err) {
             logger.error("mysql", err);
         } else {
-            let create_recharges = `CREATE TABLE recharges (
+            let create_recharges = `CREATE TABLE IF NOT EXISTS recharges (
                                         trxId varchar(30) PRIMARY KEY NOT NULL,
                                         account varchar(30) NOT NULL,
                                         bankCd varchar(50) NOT NULL,
@@ -29,7 +28,7 @@ function createTables() {
                 logger.error("create table error", err);
             });
 
-            let create_transfers = `CREATE TABLE transfers (
+            let create_transfers = `CREATE TABLE IF NOT EXISTS transfers (
                                         trackId varchar(30) PRIMARY KEY NOT NULL,
                                         userId varchar(66) NOT NULL,
                                         amount varchar(100) NOT NULL,
@@ -40,7 +39,7 @@ function createTables() {
                 logger.error("create table error", err);
             });
 
-            let create_users = `CREATE TABLE users (
+            let create_users = `CREATE TABLE IF NOT EXISTS users (
                 userId varchar(66) PRIMARY KEY NOT NULL,
                 account varchar(66) NOT NULL,
                 info TEXT NOT NULL,
