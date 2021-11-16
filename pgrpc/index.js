@@ -53,33 +53,33 @@ function get(path, callback) {
 }
 
 function register(miniMcht, callback) {
-
-    callback(null, { account: miniMcht.userId });
-    // post("user", {
-    //     "miniMcht": miniMcht
-    // }, function (err, data) {
-    //     if (err) {
-    //         callback(err, null)
-    //     } else {
-    //         callback(null, data);
-    //     }
-    // })
+    post("user", {
+        "miniMcht": miniMcht
+    }, function (err, data) {
+        if (err) {
+            callback(err, null)
+        } else {
+            if (data.result.resultCd == "0000") {
+                callback(null, data.result.miniMcht);
+            } else {
+                callback(data.result, null);
+            }
+        }
+    })
 }
 
 function getUserInfo(userId, callback) {
-    callback(null, { account: userId });
-    // userId = "decetest00002";
-    // get("user/" + userId, function (err, data) {
-    //     if (err) {
-    //         callback(err, null)
-    //     } else {
-    //         if (data.miniMcht) {
-    //             callback(null, data.miniMcht);
-    //         } else {
-    //             callback(null, data.result);
-    //         }
-    //     }
-    // });
+    get("user/" + userId, function (err, data) {
+        if (err) {
+            callback(err, null)
+        } else {
+            if (data.miniMcht) {
+                callback(null, data.miniMcht);
+            } else {
+                callback(null, data.result);
+            }
+        }
+    });
 }
 
 function notiErrorRetry(day, callback) {
@@ -93,20 +93,19 @@ function notiErrorRetry(day, callback) {
 }
 
 function transfer(trackId, userId, amount, callback) {
-    callback(null, {});
-    // post("transfer/user", {
-    //     "miniBankTransfer": {
-    //         "trackId": trackId,
-    //         "userId": userId,
-    //         "amount": amount
-    //     }
-    // }, function (err, response) {
-    //     if (err) {
-    //         callback(err, null)
-    //     } else {
-    //         callback(null, response.data.miniMcht);
-    //     }
-    // });
+    post("transfer/user", {
+        "miniBankTransfer": {
+            "trackId": trackId,
+            "userId": userId,
+            "amount": amount
+        }
+    }, function (err, response) {
+        if (err) {
+            callback(err, null)
+        } else {
+            callback(null, response.data.miniMcht);
+        }
+    });
 }
 
 module.exports = {

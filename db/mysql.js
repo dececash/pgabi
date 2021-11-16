@@ -59,6 +59,7 @@ function insert(table, row, callback) {
     pool.getConnection(function (err, connection) {
         if (err) {
             logger.error("mysql", err);
+            callback(err, null);return;
         } else {
             connection.query('INSERT INTO ?? SET ?', [table, row], function (err, ret) {
                 connection.release();
@@ -95,6 +96,10 @@ function update(talbe, key, value) {
 
 function getUserInfo(useId, callback) {
     pool.getConnection(function (err, connection) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
         connection.query("SELECT * from users where `userId`='" + useId + "';", function (error, results, fields) {
             connection.release();
             logger.info("getUserInfo", error, results);
@@ -126,6 +131,9 @@ function saveTransfer(transferItem, callback) {
 
 function updateTransferStatus(trackId, status, callback) {
     pool.getConnection(function (err, connection) {
+        if(err) {
+            callback(err, null);return;
+        }
         let sql = "UPDATE ?? SET `status` = ? where trackId=? AND status=0;";
         connection.query(sql, ["transfers", status, trackId], function (error, results) {
             connection.release();
@@ -144,6 +152,10 @@ function updateTransferStatus(trackId, status, callback) {
 
 function transferStatus(trackId, callback) {
     pool.getConnection(function (err, connection) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
         connection.query("SELECT status from transfers where `trackId`='" + trackId + "';", function (error, results, fields) {
             connection.release();
             logger.info("transferStatus", error, results);
@@ -172,6 +184,10 @@ function rechargeList(account, pageIndex, pageCount, callback) {
     sql += " ORDER BY createTime DESC LIMIT " + offset + "," + pageCount + ";";
 
     pool.getConnection(function (err, connection) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
         connection.query(sql, function (error, results, fields) {
             connection.release();
             let list = [];

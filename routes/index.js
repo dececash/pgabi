@@ -32,12 +32,12 @@ router.post("/notify", function (req, res, next) {
 
   db.saveRecharge(recharegItem, function (err) {
     if (err) {
-      res.status(500).send({
+      res.send({
         code: "500",
         message: err,
       });
     } else {
-      res.status(200).send({
+      res.send({
         code: "200",
         message: "ok",
       });
@@ -89,9 +89,23 @@ router.post("/register", function (req, res, next) {
 
 router.get("/getUserInfo", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
+  // pgRpc.getUserInfo(userId, function (err, ret) {
+  //   if (err) {
+  //     res.send({
+  //       code: "500",
+  //       message: err,
+  //     });
+  //   } else {
+  //     res.send({
+  //       code: "200",
+  //       message: "OK",
+  //       data: ret,
+  //     });
+  //   }
+  // });
   db.getUserInfo(userId, function (err, ret) {
     if (err) {
-      res.status(500).send({
+      res.send({
         code: "500",
         message: err,
       });
@@ -146,7 +160,7 @@ router.post("/transfer", function (req, res, next) {
 
   db.transferStatus(trackId, function (err, status) {
     if (err) {
-      res.status(500).send({
+      res.send({
         code: "500",
         message: err,
       });
@@ -163,7 +177,7 @@ router.post("/transfer", function (req, res, next) {
         db.updateTransferStatus(trackId, 1, function (err, ret) {
           if (err) {
             logger.error("transfer", trackId, JSON.stringify(err));
-            res.status(500).send({
+            res.send({
               code: "500",
               message: err,
             });
@@ -174,7 +188,7 @@ router.post("/transfer", function (req, res, next) {
               } else {
                 logger.info("transfer", trackId, JSON.stringify(ret));
               }
-              res.status(200).send({
+              res.send({
                 code: "200",
                 message: "OK",
               });
@@ -209,7 +223,7 @@ router.get("/getRechargeList", function (req, res, next) {
     req.query.pageCount,
     function (err, list) {
       if (err) {
-        res.status(500).send({
+        res.send({
           code: "500",
           message: err,
         });
