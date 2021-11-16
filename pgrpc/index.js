@@ -60,7 +60,7 @@ function register(miniMcht, callback) {
             callback(err, null)
         } else {
             if (data.result.resultCd == "0000") {
-                callback(null, data.result.miniMcht);
+                callback(null, data.miniMcht);
             } else {
                 callback(data.result, null);
             }

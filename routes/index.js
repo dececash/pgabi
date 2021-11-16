@@ -10,7 +10,7 @@ const logger = log4js.getLogger("info");
 const date = require('date-and-time');
 
 router.post("/notify", function (req, res, next) {
-  logger.info("recharge info", JSON.stringify(req.body));
+  logger.info("recharge info", req.headers.authorization, JSON.stringify(req.body));
 
   if (req.headers.authorization != global.Authorization) {
     res.status(401).send({
@@ -20,7 +20,7 @@ router.post("/notify", function (req, res, next) {
     return;
   }
 
-  let data = req.body;
+  let data = req.body.request;
   let recharegItem = {
     trxId: data.trxId,
     bankCd: data.bankCd,
@@ -69,7 +69,6 @@ router.post("/register", function (req, res, next) {
 
   pgRpc.register(miniMcht, function (err, data) {
     if (err) {
-      logger.error("register error", userId, trackId, err);
       res.send({
         code: "500",
         message: err,
@@ -77,7 +76,7 @@ router.post("/register", function (req, res, next) {
     } else {
       let info = JSON.stringify(data);
       logger.info("register ret", userId, trackId, JSON.stringify(data));
-      db.saveUser({ userId: userId, account: userId, info: info, createTime: new Date() }, function () {
+      db.saveUser({ userId: userId, account: data.vaccntId, info: info, createTime: new Date() }, function () {
       });
       res.send({
         code: "200",
