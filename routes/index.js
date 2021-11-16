@@ -32,7 +32,7 @@ router.post("/notify", function (req, res, next) {
 
   db.saveRecharge(recharegItem, function (err) {
     if (err) {
-      res.send({
+      res.status(500).send({
         code: "500",
         message: err,
       });
@@ -77,7 +77,8 @@ router.post("/register", function (req, res, next) {
     } else {
       let info = JSON.stringify(data);
       logger.info("register ret", userId, trackId, JSON.stringify(data));
-      db.saveUser({ userId: userId, account: userId, info: info, createTime: new Date() });
+      db.saveUser({ userId: userId, account: userId, info: info, createTime: new Date() }, function () {
+      });
       res.send({
         code: "200",
         message: "OK",
@@ -89,21 +90,7 @@ router.post("/register", function (req, res, next) {
 
 router.get("/getUserInfo", function (req, res, next) {
   let userId = utils.genUserId(req.query.pkr);
-  // pgRpc.getUserInfo(userId, function (err, ret) {
-  //   if (err) {
-  //     res.send({
-  //       code: "500",
-  //       message: err,
-  //     });
-  //   } else {
-  //     res.send({
-  //       code: "200",
-  //       message: "OK",
-  //       data: ret,
-  //     });
-  //   }
-  // });
-  db.getUserInfo(userId, function (err, ret) {
+  pgRpc.getUserInfo(userId, function (err, ret) {
     if (err) {
       res.send({
         code: "500",
@@ -117,6 +104,20 @@ router.get("/getUserInfo", function (req, res, next) {
       });
     }
   });
+  // db.getUserInfo(userId, function (err, ret) {
+  //   if (err) {
+  //     res.send({
+  //       code: "500",
+  //       message: err,
+  //     });
+  //   } else {
+  //     res.send({
+  //       code: "200",
+  //       message: "OK",
+  //       data: ret,
+  //     });
+  //   }
+  // });
 });
 
 router.post("/saveTransfer", function (req, res, next) {
