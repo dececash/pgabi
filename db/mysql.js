@@ -7,7 +7,8 @@ const logger = log4js.getLogger("info");
 var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: '123456@',
+    // password: '123456@',
+    password: '12345678',
     database: 'pgnode',
     port: 3306
 });
@@ -29,7 +30,8 @@ function createTables() {
             });
 
             let create_transfers = `CREATE TABLE IF NOT EXISTS transfers (
-                                        trackId varchar(30) PRIMARY KEY NOT NULL,
+                                        itemId INT PRIMARY KEY NOT NULL,
+                                        trackId varchar(30) ,
                                         userId varchar(66) NOT NULL,
                                         amount varchar(100) NOT NULL,
                                         status INT NOT NULL,
@@ -100,6 +102,7 @@ function getUserInfo(useId, callback) {
             callback(err, null);
             return;
         }
+
         connection.query("SELECT * from users where `userId`='" + useId + "';", function (error, results, fields) {
             connection.release();
             logger.info("getUserInfo", error, results);
@@ -129,13 +132,13 @@ function saveTransfer(transferItem, callback) {
     insert("transfers", transferItem, callback);
 }
 
-function updateTransferStatus(trackId, status, callback) {
+function updateTransferStatus(itemId,trackId, status, callback) {
     pool.getConnection(function (err, connection) {
         if(err) {
             callback(err, null);return;
         }
-        let sql = "UPDATE ?? SET `status` = ? where trackId=? AND status=0;";
-        connection.query(sql, ["transfers", status, trackId], function (error, results) {
+        let sql = "UPDATE ?? SET `status` = ?, `trackId` = ? where itemId=? AND status=0;";
+        connection.query(sql, ["transfers", status, trackId, itemId], function (error, results) {
             connection.release();
             if (results && results.affectedRows == 1) {
                 callback(null, {});
@@ -150,24 +153,44 @@ function updateTransferStatus(trackId, status, callback) {
     });
 }
 
-function transferStatus(trackId, callback) {
+function getTransfer(itemId, callback){
     pool.getConnection(function (err, connection) {
         if (err) {
             callback(err, null);
             return;
         }
-        connection.query("SELECT status from transfers where `trackId`='" + trackId + "';", function (error, results, fields) {
+
+        connection.query("SELECT * from transfers where `itemId`='" + itemId + "';", function (error, results, fields) {
             connection.release();
-            logger.info("transferStatus", error, results);
+            logger.info("getTransfer", error, results);
             if (error || results.length == 0) {
-                logger.error("transferStatus", trackId, error, results);
+                logger.error("getTransfer", trackId, error, results);
                 callback("no row", null);
             } else {
-                callback(null, results[0].status);
+                callback(null, results[0]);
             }
         });
-    });
+    }); 
 }
+
+// function transferStatus(trackId, callback) {
+//     pool.getConnection(function (err, connection) {
+//         if (err) {
+//             callback(err, null);
+//             return;
+//         }
+//         connection.query("SELECT status from transfers where `trackId`='" + trackId + "';", function (error, results, fields) {
+//             connection.release();
+//             logger.info("transferStatus", error, results);
+//             if (error || results.length == 0) {
+//                 logger.error("transferStatus", trackId, error, results);
+//                 callback("no row", null);
+//             } else {
+//                 callback(null, results[0].status);
+//             }
+//         });
+//     });
+// }
 
 function rechargeList(account, pageIndex, pageCount, callback) {
     let sql = "SELECT * from recharges";
@@ -217,6 +240,7 @@ module.exports = {
     saveRecharge,
     saveTransfer,
     updateTransferStatus,
-    transferStatus,
-    getUserInfo
+    // transferStatus,
+    getUserInfo,
+    getTransfer
 }

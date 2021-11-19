@@ -25,15 +25,16 @@ function genUserId(pkr) {
     return "U" + pkr.slice(0, 20) + pkr.slice(64, 73);
 }
 
-function genTTrackId(userId, itemId, amount, time) {
-    let hash = keccak256(abi.encodeParameters(["string", "uint", "uint", "uint"], [userId, itemId, amount, time]));
-    return "T" + time + hash.slice(2, 9)
+function genTTrackId(userId, itemId) {
+    let hash = keccak256(abi.encodeParameters(["string", "uint"], [userId, itemId]));
+    return "T" + Math.floor(Date.now()/1000) + hash.slice(2, 9)
 }
 
 function genRTrackId(userId, time) {
     let hash = keccak256(userId);
     return "T" + time + hash.slice(2, 9)
 }
+
 
 module.exports = {
     dateFormat,

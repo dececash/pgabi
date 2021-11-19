@@ -1,4 +1,5 @@
 var express = require("express");
+const ed25519 = require('ed25519-wasm-pro');
 const pgRpc = require("../pgrpc");
 const db = require("../db/index");
 const utils = require("../utils");
@@ -8,6 +9,9 @@ const log4js = require("../logger");
 const logger = log4js.getLogger("info");
 
 const date = require('date-and-time');
+const {keccak256, encodePacked} = require("web3-utils");
+
+const publicKey = new Uint8Array("86bf98a77567b26b329f930f25c8622c15cd4b1fae0b721dbf4f8a2962de0236");
 
 router.post("/notify", function (req, res, next) {
   logger.info("recharge info", req.headers.authorization, JSON.stringify(req.body));
@@ -47,9 +51,7 @@ router.post("/notify", function (req, res, next) {
 
 router.post("/register", function (req, res, next) {
   let userId = utils.genUserId(req.body.pkr);
-  let trackId = utils.genRTrackId(
-    userId, Math.floor(new Date().getTime() / 1000)
-  );
+  let trackId = utils.genRTrackId(userId, Math.floor(new Date().getTime() / 1000));
 
   logger.info("register", req.body.pkr, userId, trackId);
 
@@ -76,8 +78,12 @@ router.post("/register", function (req, res, next) {
     } else {
       let info = JSON.stringify(data);
       logger.info("register ret", userId, trackId, JSON.stringify(data));
-      db.saveUser({ userId: userId, account: data.vaccntId, info: info, createTime: new Date() }, function () {
-      });
+      db.saveUser({
+        userId: userId,
+        account: data.vaccntId,
+        info: info,
+        createTime: new Date()
+      }, function () { });
       res.send({
         code: "200",
         message: "OK",
@@ -118,18 +124,24 @@ router.get("/getUserInfo", function (req, res, next) {
   //   }
   // });
 });
-
 router.post("/saveTransfer", function (req, res, next) {
-  let userId = utils.genUserId(req.body.pkr);
-  let trackId = utils.genTTrackId(userId, req.body.itemId, req.body.amount, req.body.time);
+  // let hash = keccak256(encodePacked(req.body.pkr, req.body.itemId, req.body.amount, req.body.time));
+  // if (!ed25519.verify(req.body.sign, new Uint8Array(hash), publicKey)) {
+  //   res.send({
+  //     code: "500",
+  //     message: "",
+  //   });
+  //   return;
+  // }
 
   let status = 0;
   if (req.body.status) {
     status = req.body.status;
   }
-  logger.info("saveTransfer", req.body);
+  let userId = utils.genUserId(req.body.pkr);
   let transferItem = {
-    trackId: trackId,
+    itemId: req.body.itemId,
+    trackId: "",
     userId: userId,
     amount: req.body.amount,
     status: status,
@@ -153,12 +165,8 @@ router.post("/saveTransfer", function (req, res, next) {
 });
 
 router.post("/transfer", function (req, res, next) {
-  let userId = utils.genUserId(req.body.pkr);
-  let trackId = utils.genTTrackId(userId, req.body.itemId, req.body.amount, req.body.time);
-
-  logger.info("transfer", trackId, userId, req.body.amount);
-
-  db.transferStatus(trackId, function (err, status) {
+  logger.info("transfer req", req.body);
+  db.getTransfer(req.body.itemId, function (err, res) {
     if (err) {
       res.send({
         code: "500",
@@ -166,7 +174,7 @@ router.post("/transfer", function (req, res, next) {
       });
       return;
     } else {
-      if (status == 1) {
+      if (res[0].status == 1) {
         logger.info("transfer", trackId, "has transfered");
         res.send({
           code: "200",
@@ -174,20 +182,25 @@ router.post("/transfer", function (req, res, next) {
         });
         return;
       } else {
-        db.updateTransferStatus(trackId, 1, function (err, ret) {
+
+        let userId = utils.genUserId(req.body.pkr);
+        let trackId = utils.genTTrackId(userId, req.body.itemId);
+        db.updateTransferStatus(req.body.itemId, trackId, 1, function (err, ret) {
           if (err) {
-            logger.error("transfer", trackId, JSON.stringify(err));
+            logger.error("transfer", req.body.itemId, JSON.stringify(err));
             res.send({
               code: "500",
               message: err,
             });
           } else {
+
             pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
               if (err) {
-                logger.error("transfer", trackId, JSON.stringify(err));
+                logger.error("transfer", userId, trackId, JSON.stringify(err));
               } else {
-                logger.info("transfer", trackId, JSON.stringify(ret));
+                logger.info("transfer", userId, trackId, JSON.stringify(ret));
               }
+
               res.send({
                 code: "200",
                 message: "OK",
@@ -201,17 +214,19 @@ router.post("/transfer", function (req, res, next) {
 });
 
 router.get("/transferStatus", function (req, res, next) {
-  let userId = utils.genUserId(req.query.pkr);
-  let trackId = utils.genTTrackId(userId, req.query.itemId, req.query.amount, req.query.time);
-  logger.info(trackId, userId, req.query);
-  db.transferStatus(trackId, function (err, status) {
-    if (status == null) {
+  db.getTransfer(req.query.itemId, function (err, tx) {
+    let status;
+    if (err) {
       status = 1;
+    } else {
+      status = tx.status;
     }
     res.send({
       code: "200",
       message: "OK",
-      data: { status: status },
+      data: {
+        status: status
+      },
     });
   });
 });
