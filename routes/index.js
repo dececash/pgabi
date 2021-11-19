@@ -166,7 +166,7 @@ router.post("/saveTransfer", function (req, res, next) {
 
 router.post("/transfer", function (req, res, next) {
   logger.info("transfer req", req.body);
-  db.getTransfer(req.body.itemId, function (err, res) {
+  db.getTransfer(req.body.itemId, function (err, tx) {
     if (err) {
       res.send({
         code: "500",
@@ -174,8 +174,8 @@ router.post("/transfer", function (req, res, next) {
       });
       return;
     } else {
-      if (res[0].status == 1) {
-        logger.info("transfer", trackId, "has transfered");
+      if (tx.status == 1) {
+        logger.info("transfer", req.body.itemId, "has transfered");
         res.send({
           code: "200",
           message: "OK",
@@ -193,14 +193,12 @@ router.post("/transfer", function (req, res, next) {
               message: err,
             });
           } else {
-
             pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
               if (err) {
                 logger.error("transfer", userId, trackId, JSON.stringify(err));
               } else {
                 logger.info("transfer", userId, trackId, JSON.stringify(ret));
               }
-
               res.send({
                 code: "200",
                 message: "OK",

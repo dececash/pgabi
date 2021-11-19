@@ -7,8 +7,7 @@ const logger = log4js.getLogger("info");
 var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    // password: '123456@',
-    password: '12345678',
+    password: '123456@',
     database: 'pgnode',
     port: 3306
 });
@@ -162,7 +161,6 @@ function getTransfer(itemId, callback){
 
         connection.query("SELECT * from transfers where `itemId`='" + itemId + "';", function (error, results, fields) {
             connection.release();
-            logger.info("getTransfer", error, results);
             if (error || results.length == 0) {
                 logger.error("getTransfer", trackId, error, results);
                 callback("no row", null);
