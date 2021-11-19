@@ -16,13 +16,13 @@ const publicKey = new Uint8Array("86bf98a77567b26b329f930f25c8622c15cd4b1fae0b72
 router.post("/notify", function (req, res, next) {
   logger.info("recharge info", req.headers.authorization, JSON.stringify(req.body));
 
-  if (req.headers.authorization != global.Authorization) {
-    res.status(401).send({
-      code: "401",
-      message: "Unauthorized"
-    });
-    return;
-  }
+  // if (req.headers.authorization != global.Authorization) {
+  //   res.status(401).send({
+  //     code: "401",
+  //     message: "Unauthorized"
+  //   });
+  //   return;
+  // }
 
   let data = req.body.request;
   let recharegItem = {
