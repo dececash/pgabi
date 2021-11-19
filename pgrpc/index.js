@@ -99,11 +99,15 @@ function transfer(trackId, userId, amount, callback) {
             "userId": userId,
             "amount": amount
         }
-    }, function (err, response) {
+    }, function (err, data) {
         if (err) {
             callback(err, null)
         } else {
-            callback(null, response.data.miniMcht);
+            if (data.result.resultCd == "0000") {
+                callback(null, data);
+            } else {
+                callback(data.result, null);
+            }
         }
     });
 }

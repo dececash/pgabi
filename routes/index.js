@@ -185,7 +185,7 @@ router.post("/transfer", function (req, res, next) {
 
         let userId = utils.genUserId(req.body.pkr);
         let trackId = utils.genTTrackId(userId, req.body.itemId);
-        db.updateTransferStatus(req.body.itemId, trackId, 1, function (err, ret) {
+        db.updateTransferStatus(req.body.itemId, trackId, 1, function (err) {
           if (err) {
             logger.error("transfer", req.body.itemId, JSON.stringify(err));
             res.send({
@@ -193,16 +193,20 @@ router.post("/transfer", function (req, res, next) {
               message: err,
             });
           } else {
-            pgRpc.transfer(trackId, userId, req.body.amount, function (err, ret) {
+            pgRpc.transfer(trackId, userId, req.body.amount, function (err, result) {
               if (err) {
                 logger.error("transfer", userId, trackId, JSON.stringify(err));
+                res.send({
+                  code: "500",
+                  message: JSON.stringify(err),
+                });
               } else {
                 logger.info("transfer", userId, trackId, JSON.stringify(ret));
+                res.send({
+                  code: "200",
+                  message: "OK",
+                });
               }
-              res.send({
-                code: "200",
-                message: "OK",
-              });
             });
           }
         });
