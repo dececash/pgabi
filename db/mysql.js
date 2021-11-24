@@ -41,7 +41,7 @@ function createTables() {
             });
 
             let create_users = `CREATE TABLE IF NOT EXISTS users (
-                userId varchar(66) PRIMARY KEY NOT NULL,
+                pkr varchar(200) PRIMARY KEY NOT NULL,
                 account varchar(66) NOT NULL,
                 info TEXT NOT NULL,
                 createTime TIMESTAMP NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`;
@@ -95,14 +95,14 @@ function update(talbe, key, value) {
     });
 }
 
-function getUserInfo(useId, callback) {
+function getUserInfo(pkr, callback) {
     pool.getConnection(function (err, connection) {
         if (err) {
             callback(err, null);
             return;
         }
 
-        connection.query("SELECT * from users where `userId`='" + useId + "';", function (error, results, fields) {
+        connection.query("SELECT * from users where `pkr`='" + pkr + "';", function (error, results, fields) {
             connection.release();
             logger.info("getUserInfo", error, results);
             if (error || results.length == 0) {
@@ -110,7 +110,7 @@ function getUserInfo(useId, callback) {
                 callback("no row", null);
             } else {
                 callback(null, {
-                    useId: results[0].userId,
+                    pkr: results[0].pkr,
                     account: results[0].account,
                     info: results[0].info
                 });

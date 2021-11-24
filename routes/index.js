@@ -9,7 +9,7 @@ const log4js = require("../logger");
 const logger = log4js.getLogger("info");
 
 const date = require('date-and-time');
-const {keccak256, encodePacked} = require("web3-utils");
+const { keccak256, encodePacked } = require("web3-utils");
 
 const publicKey = new Uint8Array("86bf98a77567b26b329f930f25c8622c15cd4b1fae0b721dbf4f8a2962de0236");
 
@@ -79,11 +79,12 @@ router.post("/register", function (req, res, next) {
       let info = JSON.stringify(data);
       logger.info("register ret", userId, trackId, JSON.stringify(data));
       db.saveUser({
-        userId: userId,
-        account: data.vaccntId,
+        pkr: req.body.pkr,
+        account: data.vaccnt.account,
         info: info,
         createTime: new Date()
       }, function () { });
+
       res.send({
         code: "200",
         message: "OK",
@@ -109,7 +110,7 @@ router.get("/getUserInfo", function (req, res, next) {
       });
     }
   });
-  // db.getUserInfo(userId, function (err, ret) {
+  // db.getUserInfo(req.query.pkr, function (err, ret) {
   //   if (err) {
   //     res.send({
   //       code: "500",
